@@ -133,13 +133,11 @@ app.get("/feed", async (req, res) => {
   // 5. order the posts by the field `updated_at` descending or ascending basesd on the parameter `orderBy`
   // 6. if the `searchString` parameter is not an empty, use the string to filter posts not matching the post titles or post content
 
-  const posts = await prisma.post.findMany({
-    where: {
-      AND: [
-        {
-          published: true,
-        },
-        {
+const posts = await prisma.post.findMany({
+  where: {
+    published: true,
+    ...(searchString
+      ? {
           OR: [
             {
               title: {
@@ -152,20 +150,19 @@ app.get("/feed", async (req, res) => {
               },
             },
           ],
-        },
-      ],
-    },
-    include: {
-      author: true,
-    },
-    skip: Number(skip),
-    take: Number(take),
-    orderBy: {
-      updatedAt: orderBy === "desc" ? "desc" : "asc",
-    },
-  });
-  res.json(posts);
+        }
+      : {}),
+  },
+  include: {
+    author: true,
+  },
+  skip: Number(skip),
+  take: Number(take),
+  orderBy: {
+    updatedAt: orderBy === "desc" ? "desc" : "asc",
+  },
 });
+res.json(posts);
 
 app.get("/", async (req, res) => {
   res.json({ messae: "Hello World" });
